@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <!-- CljrDevMode: Enable Var-based codegen for live function redefinition via REPL -->
+  <!-- Set to true for development (enables hot reload), false for production (static methods) -->
+  <PropertyGroup>
+    <CljrDevMode Condition="'$(CljrDevMode)' == ''">false</CljrDevMode>
+  </PropertyGroup>
+
+  <!-- Make CljrDevMode visible to the source generator -->
+  <ItemGroup>
+    <CompilerVisibleProperty Include="CljrDevMode" />
+  </ItemGroup>
+
+  <!-- Make .cljr files available as AdditionalFiles for the source generator -->
+  <ItemGroup>
+    <AdditionalFiles Include="**/*.cljr" Exclude="$(DefaultExcludes);$(DefaultItemExcludes)" />
+  </ItemGroup>
+
+  <!-- Optional: make .cljr files visible in solution explorer -->
+  <ItemGroup>
+    <None Include="**/*.cljr" Exclude="$(DefaultExcludes);$(DefaultItemExcludes)" />
+  </ItemGroup>
+</Project>

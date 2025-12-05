@@ -1,0 +1,81 @@
+(ns sequences-test
+  "Tests for sequence operations")
+
+;; ============================================================================
+;; drop-last - Returns all but the last n elements
+;; ============================================================================
+
+(deftest test-drop-last-default
+  (is (= [1 2 3 4] (vec (drop-last [1 2 3 4 5]))))
+  (is (= [] (vec (drop-last [1])))))
+
+(deftest test-drop-last-n
+  (is (= [1 2 3] (vec (drop-last 2 [1 2 3 4 5]))))
+  (is (= [1] (vec (drop-last 4 [1 2 3 4 5]))))
+  (is (= [] (vec (drop-last 5 [1 2 3 4 5])))))
+
+;; ============================================================================
+;; take-last - Returns the last n elements
+;; ============================================================================
+
+(deftest test-take-last
+  (is (= [4 5] (vec (take-last 2 [1 2 3 4 5]))))
+  (is (= [1 2 3 4 5] (vec (take-last 10 [1 2 3 4 5]))))
+  (is (= [] (vec (take-last 0 [1 2 3 4 5])))))
+
+;; ============================================================================
+;; butlast - Returns all but the last element
+;; ============================================================================
+
+(deftest test-butlast
+  (is (= 4 (count (butlast [1 2 3 4 5]))))
+  (is (= 1 (count (butlast [1 2]))))
+  (is (nil? (butlast [1])))
+  (is (nil? (butlast []))))
+
+;; ============================================================================
+;; nthrest - Returns the nth rest of coll
+;; ============================================================================
+
+(deftest test-nthrest
+  (is (= [3 4 5] (vec (nthrest [1 2 3 4 5] 2))))
+  (is (= [1 2 3 4 5] (vec (nthrest [1 2 3 4 5] 0))))
+  (is (= [] (vec (nthrest [1 2 3 4 5] 10)))))
+
+;; ============================================================================
+;; nthnext - Returns the nth next of coll, or nil
+;; ============================================================================
+
+(deftest test-nthnext
+  (is (= 3 (first (nthnext [1 2 3 4 5] 2))))
+  (is (= 1 (first (nthnext [1 2 3 4 5] 0))))
+  (is (nil? (nthnext [1 2 3 4 5] 10))))
+
+;; ============================================================================
+;; subvec - Returns a subvector of v
+;; ============================================================================
+
+(deftest test-subvec
+  (is (= [2 3 4] (subvec [1 2 3 4 5] 1 4)))
+  (is (= [3 4 5] (subvec [1 2 3 4 5] 2)))
+  (is (= [] (subvec [1 2 3 4 5] 2 2)))
+  (is (= [1 2 3 4 5] (subvec [1 2 3 4 5] 0))))
+
+;; ============================================================================
+;; rseq - Returns a reverse seq of a vector or sorted-map
+;; ============================================================================
+
+(deftest test-rseq
+  (is (= 5 (first (rseq [1 2 3 4 5]))))
+  (is (= 5 (count (rseq [1 2 3 4 5]))))
+  (is (nil? (rseq []))))
+
+;; ============================================================================
+;; format - Printf-style string formatting
+;; ============================================================================
+
+(deftest test-format
+  (is (= "Hello World" (format "Hello %s" "World")))
+  (is (= "The answer is 42" (format "The answer is %d" 42)))
+  (is (= "Pi is 3.14" (format "Pi is %.2f" 3.14159)))
+  (is (= "100%" (format "%d%%" 100))))

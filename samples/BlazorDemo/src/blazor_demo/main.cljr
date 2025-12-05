@@ -1,0 +1,48 @@
+(ns blazor-demo.main
+  (:import [Microsoft.AspNetCore.Builder WebApplication RazorComponentsEndpointRouteBuilderExtensions StaticAssetsEndpointRouteBuilderExtensions ServerRazorComponentsEndpointConventionBuilderExtensions]
+           [Microsoft.Extensions.DependencyInjection RazorComponentsServiceCollectionExtensions ServerRazorComponentsBuilderExtensions]
+           [Cljr.Repl EmbeddedNrepl]))
+
+;; ============================================================================
+;; Blazor Web App - 100% Cljr Entry Point
+;; ============================================================================
+;;
+;; Run with: dotnet run
+;;
+;; This demonstrates:
+;; - Blazor Server app configured entirely in Cljr
+;; - [Parameter] attributes on component properties
+;; - Interactive server-side rendering
+;;
+;; ============================================================================
+
+(defn -main []
+  (let [args ^|string[]| (into-array String [])
+        builder (WebApplication/CreateBuilder args)]
+
+    ;; Add Blazor services
+    (-> (.-Services builder)
+        (RazorComponentsServiceCollectionExtensions/AddRazorComponents)
+        (ServerRazorComponentsBuilderExtensions/AddInteractiveServerComponents))
+
+    (let [app (.Build builder)]
+
+      ;; Configure middleware
+      (.UseAntiforgery app)
+
+      ;; Map Blazor components with interactive server rendering (.NET 10)
+      ;; MapStaticAssets serves the fingerprinted blazor.web.js
+      (StaticAssetsEndpointRouteBuilderExtensions/MapStaticAssets app)
+
+      ;; Generic method calls use pipe-escaped syntax: |Method<TypeArg>|
+      (-> (RazorComponentsEndpointRouteBuilderExtensions/|MapRazorComponents<BlazorDemo.Components.App>| app)
+          (ServerRazorComponentsEndpointConventionBuilderExtensions/AddInteractiveServerRenderMode))
+
+      ;; Start embedded nREPL for REPL-driven development
+      (let [nrepl (EmbeddedNrepl/Start 7888)]
+        (println "")
+        (println "Blazor app running at http://localhost:5000")
+        (println (str "nREPL server running on port " (.-Port nrepl)))
+        (println "")
+
+        (.Run app)))))

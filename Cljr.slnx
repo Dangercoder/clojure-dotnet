@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Cljr.Cli/Cljr.Cli.csproj" />
+    <Project Path="src/Cljr.Compiler/Cljr.Compiler.csproj" />
+    <Project Path="src/Cljr.Repl/Cljr.Repl.csproj" />
+    <Project Path="src/Cljr.Runtime/Cljr.Runtime.csproj" />
+    <Project Path="src/Cljr.SourceGenerator/Cljr.SourceGenerator.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Cljr.Compiler.Tests/Cljr.Compiler.Tests.csproj" />
+    <Project Path="tests/Cljr.Runtime.Tests/Cljr.Runtime.Tests.csproj" />
+    <Project Path="tests/Cljr.CljrTests/Cljr.CljrTests.csproj" />
+  </Folder>
+</Solution>

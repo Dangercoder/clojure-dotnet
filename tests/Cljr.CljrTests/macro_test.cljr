@@ -1,0 +1,137 @@
+(ns macro-test
+  "Tests for new core macros: while, doseq, dotimes, case, condp")
+
+;; ============================================================================
+;; while tests - these macros work well without the loop counter type issue
+;; ============================================================================
+
+(deftest test-while-basic
+  ;; while should loop until condition is false
+  (let [x (atom 5)]
+    (while (> @x 0)
+      (reset! x (- @x 1)))
+    (is (= 0 @x))))
+
+(deftest test-while-never-executes
+  ;; while with false condition should not execute body
+  (let [counter (atom 0)]
+    (while false
+      (reset! counter 99))
+    (is (= 0 @counter))))
+
+(deftest test-while-counts-down
+  ;; while with complex condition
+  (let [n (atom 10)
+        sum (atom 0)]
+    (while (> @n 0)
+      (reset! sum (+ @sum @n))
+      (reset! n (- @n 1)))
+    (is (= 55 @sum)))) ;; 10+9+8+7+6+5+4+3+2+1 = 55
+
+;; ============================================================================
+;; doseq tests
+;; ============================================================================
+
+(deftest test-doseq-basic
+  ;; doseq should iterate over collection for side effects
+  (let [sum (atom 0)]
+    (doseq [x [1 2 3]]
+      (reset! sum (+ @sum x)))
+    (is (= 6 @sum))))
+
+(deftest test-doseq-empty
+  ;; doseq on empty collection should not execute body
+  (let [counter (atom 0)]
+    (doseq [x []]
+      (reset! counter 99))
+    (is (= 0 @counter))))
+
+(deftest test-doseq-strings
+  ;; doseq should work with string collection
+  (let [result (atom "")]
+    (doseq [s ["a" "b" "c"]]
+      (reset! result (str @result s)))
+    (is (= "abc" @result))))
+
+;; ============================================================================
+;; dotimes tests
+;; ============================================================================
+
+(deftest test-dotimes-basic
+  ;; dotimes should execute body n times
+  (let [counter (atom 0)]
+    (dotimes [i 5]
+      (reset! counter (+ @counter 1)))
+    (is (= 5 @counter))))
+
+(deftest test-dotimes-zero
+  ;; dotimes with 0 should not execute body
+  (let [counter (atom 0)]
+    (dotimes [i 0]
+      (reset! counter 99))
+    (is (= 0 @counter))))
+
+(deftest test-dotimes-uses-index
+  ;; dotimes should bind index correctly (0 to n-1)
+  (let [sum (atom 0)]
+    (dotimes [i 5]
+      (reset! sum (+ @sum i)))
+    (is (= 10 @sum)))) ;; 0+1+2+3+4 = 10
+
+(deftest test-dotimes-single
+  ;; dotimes with 1 should execute once
+  (let [counter (atom 0)]
+    (dotimes [i 1]
+      (reset! counter (+ @counter 1)))
+    (is (= 1 @counter))))
+
+;; ============================================================================
+;; case tests
+;; ============================================================================
+
+(deftest test-case-basic
+  ;; case should match exact values
+  (is (= "one" (case 1
+                 1 "one"
+                 2 "two"
+                 "default"))))
+
+(deftest test-case-default
+  ;; case should return default when no match
+  (is (= "default" (case 99
+                     1 "one"
+                     2 "two"
+                     "default"))))
+
+(deftest test-case-string
+  ;; case should work with string values
+  (is (= "found-a" (case "a"
+                     "a" "found-a"
+                     "b" "found-b"
+                     "not-found"))))
+
+;; ============================================================================
+;; condp tests
+;; ============================================================================
+
+(deftest test-condp-basic
+  ;; condp should match using predicate
+  (is (= "one" (condp = 1
+                 1 "one"
+                 2 "two"
+                 "default"))))
+
+(deftest test-condp-default
+  ;; condp should return default when no match
+  (is (= "default" (condp = 99
+                     1 "one"
+                     2 "two"
+                     "default"))))
+
+(deftest test-condp-greater-than
+  ;; condp applies (pred test-value expr), so (> 10 5) is true
+  (is (= "big" (condp > 5
+                 0 "small"   ; (> 0 5) = false, skip
+                 10 "big"    ; (> 10 5) = true, return "big"
+                 "huge"))))
+

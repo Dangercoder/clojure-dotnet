@@ -1,0 +1,233 @@
+(ns predicates-test
+  "Type predicate tests ported from ClojureCLR")
+
+;; Basic type predicates
+(deftest test-nil?
+  (is (nil? nil))
+  (is (not (nil? 1)))
+  (is (not (nil? "")))
+  (is (not (nil? [])))
+  (is (not (nil? false))))
+
+(deftest test-some?
+  (is (some? 1))
+  (is (some? ""))
+  (is (some? []))
+  (is (some? false))
+  (is (not (some? nil))))
+
+(deftest test-true?
+  (is (true? true))
+  (is (not (true? false)))
+  (is (not (true? nil)))
+  (is (not (true? 1))))
+
+(deftest test-false?
+  (is (false? false))
+  (is (not (false? true)))
+  (is (not (false? nil)))
+  (is (not (false? 0))))
+
+;; Number predicates
+(deftest test-number?
+  (is (number? 1))
+  (is (number? 1.5))
+  (is (number? -42))
+  (is (number? 0))
+  (is (not (number? "1")))
+  (is (not (number? nil)))
+  (is (not (number? :kw))))
+
+(deftest test-integer?
+  (is (integer? 1))
+  (is (integer? -42))
+  (is (integer? 0))
+  (is (not (integer? 1.5)))
+  (is (not (integer? "1")))
+  (is (not (integer? nil))))
+
+(deftest test-pos?
+  (is (pos? 1))
+  (is (pos? 0.5))
+  (is (not (pos? 0)))
+  (is (not (pos? -1))))
+
+(deftest test-neg?
+  (is (neg? -1))
+  (is (neg? -0.5))
+  (is (not (neg? 0)))
+  (is (not (neg? 1))))
+
+(deftest test-zero?
+  (is (zero? 0))
+  (is (zero? 0.0))
+  (is (not (zero? 1)))
+  (is (not (zero? -1))))
+
+(deftest test-even?
+  (is (even? 0))
+  (is (even? 2))
+  (is (even? -4))
+  (is (not (even? 1)))
+  (is (not (even? -3))))
+
+(deftest test-odd?
+  (is (odd? 1))
+  (is (odd? -3))
+  (is (not (odd? 0)))
+  (is (not (odd? 2))))
+
+;; Collection predicates
+(deftest test-coll?
+  (is (coll? []))
+  (is (coll? [1 2 3]))
+  (is (coll? {}))
+  (is (coll? {:a 1}))
+  (is (coll? #{}))
+  (is (coll? #{1 2}))
+  (is (coll? '()))
+  (is (coll? '(1 2)))
+  (is (not (coll? nil)))
+  (is (not (coll? "string")))
+  (is (not (coll? 42))))
+
+(deftest test-seq?
+  (is (seq? '()))
+  (is (seq? '(1 2 3)))
+  (is (not (seq? [])))
+  (is (not (seq? {})))
+  (is (not (seq? nil))))
+
+(deftest test-vector?
+  (is (vector? []))
+  (is (vector? [1 2 3]))
+  (is (not (vector? '())))
+  (is (not (vector? {})))
+  (is (not (vector? nil))))
+
+(deftest test-map?
+  (is (map? {}))
+  (is (map? {:a 1}))
+  (is (not (map? [])))
+  (is (not (map? #{})))
+  (is (not (map? nil))))
+
+(deftest test-set?
+  (is (set? #{}))
+  (is (set? #{1 2 3}))
+  (is (not (set? [])))
+  (is (not (set? {})))
+  (is (not (set? nil))))
+
+(deftest test-list?
+  (is (list? '()))
+  (is (list? '(1 2 3)))
+  (is (not (list? [])))
+  (is (not (list? nil))))
+
+(deftest test-empty?
+  (is (empty? []))
+  (is (empty? '()))
+  (is (empty? {}))
+  (is (empty? #{}))
+  (is (empty? ""))
+  (is (not (empty? [1])))
+  (is (not (empty? "a"))))
+
+(deftest test-not-empty
+  (is (= [1 2] (not-empty [1 2])))
+  (is (nil? (not-empty [])))
+  (is (nil? (not-empty "")))
+  (is (= {:a 1} (not-empty {:a 1}))))
+
+;; Sequence membership predicates
+(deftest test-every?
+  (is (every? even? [2 4 6]))
+  (is (every? even? []))
+  (is (not (every? even? [1 2 3])))
+  (is (not (every? even? [1 3 5]))))
+
+(deftest test-not-every?
+  (is (not-every? even? [1 2 3]))
+  (is (not (not-every? even? [2 4 6])))
+  (is (not (not-every? even? []))))
+
+(deftest test-some
+  ;; some returns the first truthy result of (pred x), not the element
+  ;; (some even? [1 2 3]) returns true because (even? 2) is true
+  (is (true? (some even? [2 4 6])))
+  (is (nil? (some even? [1 3 5])))
+  (is (nil? (some even? []))))
+
+(deftest test-not-any?
+  (is (not-any? even? [1 3 5]))
+  (is (not-any? even? []))
+  (is (not (not-any? even? [1 2 3]))))
+
+;; String predicates
+(deftest test-string?
+  (is (string? ""))
+  (is (string? "hello"))
+  (is (not (string? nil)))
+  (is (not (string? 42)))
+  (is (not (string? :kw))))
+
+;; Keyword predicates
+(deftest test-keyword?
+  (is (keyword? :kw))
+  (is (keyword? :a/b))
+  (is (not (keyword? 'sym)))
+  (is (not (keyword? "kw")))
+  (is (not (keyword? nil))))
+
+;; Symbol predicates
+(deftest test-symbol?
+  (is (symbol? 'sym))
+  (is (symbol? 'a/b))
+  (is (not (symbol? :kw)))
+  (is (not (symbol? "sym")))
+  (is (not (symbol? nil))))
+
+;; Function predicates
+(deftest test-fn?
+  (is (fn? inc))
+  (is (fn? even?))
+  (is (not (fn? :kw)))
+  (is (not (fn? nil))))
+
+(deftest test-ifn?
+  (is (ifn? inc))
+  (is (ifn? :kw))
+  (is (ifn? {}))
+  (is (ifn? []))
+  (is (ifn? #{}))
+  (is (not (ifn? nil)))
+  (is (not (ifn? "str"))))
+
+;; Associative predicates
+(deftest test-contains?
+  (is (contains? {:a 1} :a))
+  (is (contains? {:a nil} :a))
+  (is (not (contains? {:a 1} :b)))
+  (is (contains? [1 2 3] 0))
+  (is (contains? [1 2 3] 2))
+  (is (not (contains? [1 2 3] 3)))
+  (is (contains? #{:a :b} :a))
+  (is (not (contains? #{:a :b} :c))))
+
+;; Sequential comparison predicates
+(deftest test-distinct?
+  (is (distinct? 1 2 3))
+  (is (distinct? :a :b :c))
+  (is (not (distinct? 1 1 2)))
+  (is (not (distinct? :a :b :a)))
+  (is (distinct? 1))
+  (is (distinct?)))
+
+;; Identical predicates
+(deftest test-identical?
+  (is (identical? nil nil))
+  (is (identical? :kw :kw))
+  (let [v [1 2 3]]
+    (is (identical? v v)))
+  (is (not (identical? [1 2] [1 2]))))

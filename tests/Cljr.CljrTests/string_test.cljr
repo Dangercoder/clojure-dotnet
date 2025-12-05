@@ -1,0 +1,162 @@
+(ns cljr.string-test
+  (:require [clojure.string :as str])
+  (:import [System.Text.RegularExpressions Regex]))
+
+;; ============================================================================
+;; String Reversal
+;; ============================================================================
+
+(deftest test-reverse
+  (is (= "olleh" (str/reverse "hello")))
+  (is (= "" (str/reverse "")))
+  (is (= "a" (str/reverse "a")))
+  (is (= "dcba" (str/reverse "abcd"))))
+
+;; ============================================================================
+;; Replacement Functions
+;; ============================================================================
+
+(deftest test-replace
+  (is (= "hello world" (str/replace "hello there" "there" "world")))
+  (is (= "aaa" (str/replace "bbb" "b" "a")))
+  (is (= "hello" (str/replace "hello" "x" "y"))))
+
+(deftest test-replace-first
+  (is (= "hello world there" (str/replace-first "hello there there" "there" "world")))
+  (is (= "abb" (str/replace-first "bbb" "b" "a")))
+  (is (= "hello" (str/replace-first "hello" "x" "y"))))
+
+;; ============================================================================
+;; Join and Split
+;; ============================================================================
+
+(deftest test-join
+  (is (= "123" (str/join [1 2 3])))
+  (is (= "1-2-3" (str/join "-" [1 2 3])))
+  (is (= "hello world" (str/join " " ["hello" "world"])))
+  (is (= "" (str/join [])))
+  (is (= "" (str/join "-" []))))
+
+(deftest test-split
+  (is (= ["a" "b" "c"] (str/split "a-b-c" (Regex. "-"))))
+  (is (= ["hello" "world"] (str/split "hello world" (Regex. " "))))
+  (is (= ["hello"] (str/split "hello" (Regex. "-")))))
+
+(deftest test-split-lines
+  (is (= ["line1" "line2" "line3"] (str/split-lines "line1\nline2\nline3")))
+  (is (= ["line1" "line2"] (str/split-lines "line1\r\nline2")))
+  (is (= ["single"] (str/split-lines "single"))))
+
+;; ============================================================================
+;; Case Conversion
+;; ============================================================================
+
+(deftest test-capitalize
+  (is (= "Hello" (str/capitalize "hello")))
+  (is (= "Hello" (str/capitalize "HELLO")))
+  (is (= "Hello" (str/capitalize "hElLo")))
+  (is (= "A" (str/capitalize "a")))
+  (is (= "" (str/capitalize ""))))
+
+(deftest test-upper-case
+  (is (= "HELLO" (str/upper-case "hello")))
+  (is (= "HELLO" (str/upper-case "Hello")))
+  (is (= "" (str/upper-case ""))))
+
+(deftest test-lower-case
+  (is (= "hello" (str/lower-case "HELLO")))
+  (is (= "hello" (str/lower-case "Hello")))
+  (is (= "" (str/lower-case ""))))
+
+;; ============================================================================
+;; Trimming Functions
+;; ============================================================================
+
+(deftest test-trim
+  (is (= "hello" (str/trim "  hello  ")))
+  (is (= "hello" (str/trim "hello")))
+  (is (= "" (str/trim "   "))))
+
+(deftest test-triml
+  (is (= "hello  " (str/triml "  hello  ")))
+  (is (= "hello" (str/triml "hello")))
+  (is (= "" (str/triml "   "))))
+
+(deftest test-trimr
+  (is (= "  hello" (str/trimr "  hello  ")))
+  (is (= "hello" (str/trimr "hello")))
+  (is (= "" (str/trimr "   "))))
+
+(deftest test-trim-newline
+  (is (= "hello" (str/trim-newline "hello\n")))
+  (is (= "hello" (str/trim-newline "hello\r\n")))
+  (is (= "hello" (str/trim-newline "hello\n\n\n")))
+  (is (= "hello" (str/trim-newline "hello"))))
+
+;; ============================================================================
+;; Predicates
+;; ============================================================================
+
+(deftest test-blank?
+  (is (str/blank? nil))
+  (is (str/blank? ""))
+  (is (str/blank? "   "))
+  (is (str/blank? "\t\n"))
+  (is (not (str/blank? "hello")))
+  (is (not (str/blank? "  x  "))))
+
+;; ============================================================================
+;; Index Functions
+;; ============================================================================
+
+(deftest test-index-of
+  (is (= 0 (str/index-of "hello" "h")))
+  (is (= 4 (str/index-of "hello" "o")))
+  (is (= 2 (str/index-of "hello" "ll")))
+  (is (nil? (str/index-of "hello" "x"))))
+
+(deftest test-index-of-from
+  (is (= 6 (str/index-of "hello hello" "h" 1)))
+  (is (= 7 (str/index-of "hello hello" "e" 2))))
+
+(deftest test-last-index-of
+  (is (= 10 (str/last-index-of "hello hello" "o")))
+  (is (= 6 (str/last-index-of "hello hello" "h")))
+  (is (nil? (str/last-index-of "hello" "x"))))
+
+;; ============================================================================
+;; String Predicates
+;; ============================================================================
+
+(deftest test-starts-with?
+  (is (str/starts-with? "hello world" "hello"))
+  (is (str/starts-with? "hello" ""))
+  (is (not (str/starts-with? "hello world" "world"))))
+
+(deftest test-ends-with?
+  (is (str/ends-with? "hello world" "world"))
+  (is (str/ends-with? "hello" ""))
+  (is (not (str/ends-with? "hello world" "hello"))))
+
+(deftest test-includes?
+  (is (str/includes? "hello world" "lo wo"))
+  (is (str/includes? "hello" ""))
+  (is (not (str/includes? "hello" "xyz"))))
+
+;; ============================================================================
+;; Escape
+;; ============================================================================
+
+(deftest test-escape
+  (is (= "&lt;div&gt;" (str/escape "<div>" {\< "&lt;" \> "&gt;"})))
+  (is (= "hello" (str/escape "hello" {})))
+  (is (= "hello" (str/escape "hello" {\x "X"}))))
+
+;; ============================================================================
+;; Re-quote Replacement
+;; ============================================================================
+
+(deftest test-re-quote-replacement
+  (is (= "\\$100" (str/re-quote-replacement "$100")))
+  (is (= "\\\\" (str/re-quote-replacement "\\")))
+  (is (= "hello" (str/re-quote-replacement "hello"))))

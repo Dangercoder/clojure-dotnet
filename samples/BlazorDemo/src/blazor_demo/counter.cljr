@@ -1,0 +1,17 @@
+(ns blazor-demo.counter
+  (:import [Microsoft.AspNetCore.Components ParameterAttribute]))
+
+(defn compute-new-count [current]
+  (+ current 1))
+
+(deftype CounterState [^{:attr [Parameter]} ^int InitialCount
+                       ^int CurrentCount]
+
+  (IncrementCount [this]
+    (def InitialCount InitialCount)
+    (set! CurrentCount ^int (compute-new-count CurrentCount))
+    nil)
+
+  (Reset [this]
+    (set! CurrentCount InitialCount)
+    nil))

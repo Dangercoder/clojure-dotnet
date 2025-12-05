@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cljr Blazor Demo</title>
+    <base href="/" />
+    <HeadOutlet @rendermode="InteractiveServer" />
+    <style>
+        body { font-family: -apple-system, BlazorServer, Helvetica, Arial, sans-serif; margin: 2rem; background: #1a1a2e; color: #eee; }
+        h1 { color: #00d4ff; }
+        h2 { color: #7c3aed; }
+        .counter { padding: 2rem; background: #16213e; border-radius: 8px; margin: 1rem 0; }
+        .count { font-size: 3rem; font-weight: bold; color: #00d4ff; }
+        button { padding: 0.75rem 1.5rem; font-size: 1rem; cursor: pointer; background: #7c3aed; color: white; border: none; border-radius: 4px; margin: 0.5rem; }
+        button:hover { background: #6d28d9; }
+        pre { background: #0f0f23; padding: 1rem; border-radius: 4px; overflow-x: auto; }
+        code { color: #00d4ff; }
+        .clojure { color: #98c379; }
+        .csharp { color: #61afef; }
+    </style>
+</head>
+<body>
+    <Routes @rendermode="InteractiveServer" />
+    <script src="_framework/blazor.web.js"></script>
+</body>
+</html>

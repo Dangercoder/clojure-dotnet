@@ -1,0 +1,14 @@
+(ns mylib.math
+  (:require [mylib.utils :as utils]))
+
+;; Math functions that use utils
+
+(defn quadruple
+  "Quadruples a number by doubling it twice"
+  [x]
+  (utils/double-it (utils/double-it x)))
+
+(defn sum-squared
+  "Returns the sum of squares of a and b"
+  [a b]
+  (+ (* a a) (* b b)))

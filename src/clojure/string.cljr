@@ -1,0 +1,174 @@
+(ns clojure.string
+  "Clojure String utilities - simplified version for Cljr"
+  (:refer-clojure :exclude [replace reverse])
+  (:import [System.Text StringBuilder]
+           [System.Text.RegularExpressions Regex]))
+
+;; ============================================================================
+;; String Reversal
+;; ============================================================================
+
+(defn ^String reverse
+  "Returns s with its characters reversed."
+  [^String s]
+  (csharp* "new string(((string)~{s}).ToCharArray().Reverse().ToArray())"))
+
+;; ============================================================================
+;; Replacement Functions (simplified - strings only)
+;; ============================================================================
+
+(defn ^String replace
+  "Replaces all instances of match with replacement in s.
+   Both match and replacement must be strings."
+  [^String s ^String match ^String replacement]
+  (.Replace s match replacement))
+
+(defn ^String replace-first
+  "Replaces the first instance of match with replacement in s."
+  [^String s ^String match ^String replacement]
+  (csharp* "((Func<string>)(() => { var idx = ((string)~{s}).IndexOf((string)~{match}); if (idx < 0) return (string)~{s}; return ((string)~{s}).Substring(0, idx) + (string)~{replacement} + ((string)~{s}).Substring(idx + ((string)~{match}).Length); }))()"))
+
+;; ============================================================================
+;; Join and Split
+;; ============================================================================
+
+(defn ^String join
+  "Returns a string of all elements in coll, as returned by (seq coll),
+  separated by an optional separator."
+  ([coll]
+   (csharp* "(string)Cljr.Core.Str(Cljr.Core.IntoArray(~{coll}))"))
+  ([separator coll]
+   (csharp* "string.Join(Cljr.Core.Str(~{separator}), Cljr.Core.IntoArray(~{coll}).Select(x => Cljr.Core.Str(x)))")))
+
+(defn split
+  "Splits string on a regular expression. Returns vector of the parts."
+  ([^String s ^Regex re]
+   (vec (.Split re s)))
+  ([^String s ^Regex re limit]
+   (csharp* "Cljr.Core.vec(((System.Text.RegularExpressions.Regex)~{re}).Split((string)~{s}, (int)~{limit}))")))
+
+(defn split-lines
+  "Splits s on \\n or \\r\\n."
+  [^String s]
+  (csharp* "Cljr.Core.vec(((string)~{s}).Split(new[] { \"\\r\\n\", \"\\n\" }, System.StringSplitOptions.None))"))
+
+;; ============================================================================
+;; Case Conversion
+;; ============================================================================
+
+(defn ^String capitalize
+  "Converts first character of the string to upper-case, all other
+  characters to lower-case."
+  [^String s]
+  (csharp* "((Func<string>)(() => { var str = (string)~{s}; if (str.Length < 2) return str.ToUpper(); return char.ToUpper(str[0]) + str.Substring(1).ToLower(); }))()"))
+
+(defn ^String upper-case
+  "Converts string to all upper-case."
+  [^String s]
+  (.ToUpper s))
+
+(defn ^String lower-case
+  "Converts string to all lower-case."
+  [^String s]
+  (.ToLower s))
+
+;; ============================================================================
+;; Trimming Functions
+;; ============================================================================
+
+(defn ^String trim
+  "Removes whitespace from both ends of string."
+  [^String s]
+  (.Trim s))
+
+(defn ^String triml
+  "Removes whitespace from the left side of string."
+  [^String s]
+  (.TrimStart s))
+
+(defn ^String trimr
+  "Removes whitespace from the right side of string."
+  [^String s]
+  (.TrimEnd s))
+
+(defn ^String trim-newline
+  "Removes all trailing newline \\n or return \\r characters from
+  string. Similar to Perl's chomp."
+  [^String s]
+  (csharp* "((string)~{s}).TrimEnd('\\n', '\\r')"))
+
+;; ============================================================================
+;; Predicates
+;; ============================================================================
+
+(defn blank?
+  "True if s is nil, empty, or contains only whitespace."
+  [^String s]
+  (csharp* "~{s} == null || System.String.IsNullOrWhiteSpace((string)~{s})"))
+
+;; ============================================================================
+;; Escape - simplified version using C# directly
+;; ============================================================================
+
+(defn ^String escape
+  "Return a new string, using cmap to escape each character ch
+   from s as follows:
+
+   If (cmap ch) is nil, append ch to the new string.
+   If (cmap ch) is non-nil, append (str (cmap ch)) instead."
+  [^String s cmap]
+  (csharp* "((Func<string>)(() => { var str = (string)~{s}; var map = ~{cmap}; var sb = new System.Text.StringBuilder(str.Length); foreach (var ch in str) { var replacement = Cljr.Core.Get(map, ch); if (replacement != null) sb.Append(Cljr.Core.Str(replacement)); else sb.Append(ch); } return sb.ToString(); }))()"))
+
+;; ============================================================================
+;; Index Functions
+;; ============================================================================
+
+(defn index-of
+  "Return index of value (string) in s, optionally searching
+  forward from from-index. Return nil if value not found."
+  ([^String s ^String value]
+   (csharp* "((Func<object>)(() => { var result = ((string)~{s}).IndexOf((string)~{value}); return result >= 0 ? (object)(long)result : null; }))()"))
+  ([^String s ^String value from-index]
+   (csharp* "((Func<object>)(() => { var result = ((string)~{s}).IndexOf((string)~{value}, System.Convert.ToInt32(~{from-index})); return result >= 0 ? (object)(long)result : null; }))()"))
+  )
+
+(defn last-index-of
+  "Return last index of value (string) in s, optionally
+  searching backward from from-index. Return nil if value not found."
+  ([^String s ^String value]
+   (csharp* "((Func<object>)(() => { var result = ((string)~{s}).LastIndexOf((string)~{value}); return result >= 0 ? (object)(long)result : null; }))()"))
+  ([^String s ^String value from-index]
+   (csharp* "((Func<object>)(() => { var result = ((string)~{s}).LastIndexOf((string)~{value}, System.Convert.ToInt32(~{from-index})); return result >= 0 ? (object)(long)result : null; }))()"))
+  )
+
+;; ============================================================================
+;; String Predicates
+;; ============================================================================
+
+(defn starts-with?
+  "True if s starts with substr."
+  [^String s ^String substr]
+  (.StartsWith s substr))
+
+(defn ends-with?
+  "True if s ends with substr."
+  [^String s ^String substr]
+  (.EndsWith s substr))
+
+(defn includes?
+  "True if s includes substr."
+  [^String s ^String substr]
+  (.Contains s substr))
+
+;; ============================================================================
+;; Re-quote replacement (simplified)
+;; ============================================================================
+
+(defn ^String re-quote-replacement
+  "Given a replacement string that you wish to be a literal
+   replacement for a pattern match in replace or replace-first, do the
+   necessary escaping of special characters in the replacement."
+  [^String replacement]
+  (-> replacement
+      (.Replace "\\" "\\\\")
+      (.Replace "$" "\\$")))

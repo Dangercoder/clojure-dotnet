@@ -1,0 +1,58 @@
+@page "/"
+@rendermode InteractiveServer
+
+<h1>Cljr Blazor Demo</h1>
+<p>Demonstrating .NET <code>[Attribute]</code> support in Cljr</p>
+
+<div class="counter">
+    <h2>Counter Component</h2>
+    <p>This counter uses <code>CounterState</code> defined in Cljr with <code>[Parameter]</code> attribute:</p>
+
+    <div class="count">@counter.CurrentCount</div>
+
+    <button @onclick="Increment">Increment</button>
+    <button @onclick="Reset">Reset to @InitialValue</button>
+</div>
+
+<h2>The Cljr Code</h2>
+<pre><code class="clojure">(deftype CounterState [^{:attr [Parameter]} ^int InitialCount
+                       ^int CurrentCount]
+  (IncrementCount [this]
+    (set! CurrentCount (+ CurrentCount 1)))
+
+  (Reset [this]
+    (set! CurrentCount InitialCount)))</code></pre>
+
+<h2>Generated C#</h2>
+<pre><code class="csharp">public class CounterState
+{
+    [Parameter]
+    public int InitialCount { get; set; }
+
+    public int CurrentCount { get; set; }
+
+    public CounterState() { }
+
+    public object? IncrementCount() { ... }
+    public object? Reset() { ... }
+}</code></pre>
+
+@code {
+    private Counter.CounterState counter = null!;
+    private int InitialValue = 10;
+
+    protected override void OnInitialized()
+    {
+        counter = new Counter.CounterState(InitialValue, InitialValue);
+    }
+
+    private void Increment()
+    {
+        counter.IncrementCount();
+    }
+
+    private void Reset()
+    {
+        counter.Reset();
+    }
+}

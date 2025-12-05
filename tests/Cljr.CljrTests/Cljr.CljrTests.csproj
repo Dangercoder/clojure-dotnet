@@ -1,0 +1,58 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>preview</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)\Generated</CompilerGeneratedFilesOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- MSTest for test execution -->
+    <PackageReference Include="MSTest.TestFramework" Version="3.1.1" />
+    <PackageReference Include="MSTest.TestAdapter" Version="3.1.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <!-- netstandard2.0 polyfills needed by source generator -->
+    <PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.1"
+                      GeneratePathProperty="true" PrivateAssets="all" />
+    <PackageReference Include="System.Memory" Version="4.5.5"
+                      GeneratePathProperty="true" PrivateAssets="all" />
+    <PackageReference Include="System.Collections.Immutable" Version="8.0.0"
+                      GeneratePathProperty="true" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Include polyfill DLLs as analyzers for source generator -->
+    <Analyzer Include="$(PkgMicrosoft_Bcl_HashCode)\lib\netstandard2.0\Microsoft.Bcl.HashCode.dll" />
+    <Analyzer Include="$(PkgSystem_Memory)\lib\netstandard2.0\System.Memory.dll" />
+    <Analyzer Include="$(PkgSystem_Collections_Immutable)\lib\netstandard2.0\System.Collections.Immutable.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Source generator reference with dependencies as analyzer -->
+    <ProjectReference Include="..\..\src\Cljr.SourceGenerator\Cljr.SourceGenerator.csproj"
+                      OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\src\Cljr.Compiler\Cljr.Compiler.csproj"
+                      OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <!-- Cljr.Core needed by Cljr.Compiler at source generation time -->
+    <ProjectReference Include="..\..\src\Cljr.Core\Cljr.Core.csproj"
+                      OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <!-- Runtime needed both as analyzer dependency and regular reference -->
+    <ProjectReference Include="..\..\src\Cljr.Runtime\Cljr.Runtime.csproj"
+                      OutputItemType="Analyzer" ReferenceOutputAssembly="true" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Include .cljr files as AdditionalFiles for source generator -->
+    <AdditionalFiles Include="**\*_test.cljr" />
+    <AdditionalFiles Include="..\..\src\clojure\string.cljr" />
+    <AdditionalFiles Include="..\..\src\clojure\set.cljr" />
+    <AdditionalFiles Include="..\..\src\clojure\walk.cljr" />
+  </ItemGroup>
+
+</Project>

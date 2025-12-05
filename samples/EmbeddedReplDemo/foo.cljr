@@ -1,0 +1,24 @@
+(ns foo)
+
+
+
+(comment
+
+  ;; Calculator - static methods work directly
+  (EmbeddedReplDemo.Calculator/Add 10 20)
+  (EmbeddedReplDemo.Calculator/Multiply 6 7)
+
+  ;; UserService - use inline type hints for instance methods
+  (def users EmbeddedReplDemo.Program/Users)
+  (.Add ^EmbeddedReplDemo.UserService users "Alice" 30)
+  (.Add ^EmbeddedReplDemo.UserService users "Bob" 25)
+  (.GetAll ^EmbeddedReplDemo.UserService users)
+
+  ;; Or use let binding with type hint
+  (let [^EmbeddedReplDemo.UserService svc EmbeddedReplDemo.Program/Users]
+    (.Add svc "Test" 42))
+
+  ;; Access User record properties with type hint
+  (def alice (.FindByName ^EmbeddedReplDemo.UserService users "Alice"))
+  (.-Name ^EmbeddedReplDemo.User alice)
+  (.-Age ^EmbeddedReplDemo.User alice))

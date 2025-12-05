@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net10.0;netstandard2.0</TargetFrameworks>
+    <LangVersion>12</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Cljr.Compiler</RootNamespace>
+  </PropertyGroup>
+
+  <!-- Roslyn for macro compilation -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
+  </ItemGroup>
+
+  <!-- netstandard2.0 polyfills -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="System.Memory" Version="4.5.5" />
+    <PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.1" />
+    <PackageReference Include="Nullable" Version="1.3.1" PrivateAssets="all" />
+    <PackageReference Include="System.Collections.Immutable" Version="8.0.0" />
+  </ItemGroup>
+
+  <!-- Cljr.Core provides shared types and core functions for both targets -->
+  <ItemGroup>
+    <ProjectReference Include="..\Cljr.Core\Cljr.Core.csproj" />
+  </ItemGroup>
+
+  <!-- Only reference runtime for net10.0 (not needed for source generator compilation) -->
+  <ItemGroup Condition="'$(TargetFramework)' != 'netstandard2.0'">
+    <ProjectReference Include="..\Cljr.Runtime\Cljr.Runtime.csproj" />
+  </ItemGroup>
+
+</Project>

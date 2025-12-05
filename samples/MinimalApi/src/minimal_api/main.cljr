@@ -1,0 +1,123 @@
+(ns minimal-api.main
+  (:import [Microsoft.AspNetCore.Builder WebApplication EndpointRouteBuilderExtensions]
+           [Serilog Log LoggerConfiguration ConsoleLoggerConfigurationExtensions]
+           [Serilog SerilogHostBuilderExtensions]))
+
+(defrecord CreateTodoRequest [^String title ^String description ^bool completed])
+
+(defn get-hello-message []
+  "Hello from Cljr!!!")
+
+(defn get-status [healthy]
+  (when healthy
+    "System is healthy"))
+
+(defn get-error-message [has-error]
+  (when-not has-error
+    "All systems operational"))
+
+
+(defn check-auth [token]
+  (if-not (nil? token)
+    "Authenticated"
+    "Unauthorized"))
+
+(defn get-status-text [code]
+  (cond
+    (= code 200) "OK"
+    (= code 404) "Not Found"
+    (= code 500) "Server Error"
+    :else "Unknown"))
+
+(defn format-name [^String name]
+  (-> name
+      (.Trim)
+      (.ToUpper)))
+(defn sum-positive [nums]
+  (->> nums
+       (filter pos?)
+       (reduce +)))
+
+(defn validate-todo [title description]
+  (and title
+       description
+       (> (count title) 0)
+       (> (count description) 0)))
+
+(defn get-display-name [user-name fallback]
+  (or user-name fallback "Anonymous"))
+
+(defn process-optional-data [data]
+  (when-let [value data]
+    (str "Processing: " value)))
+
+(defn get-value-or-default [maybe-value default]
+  (if-let [v maybe-value]
+    (str "Got: " v)
+    (str "Default: " default)))
+(defn create-app [^|string [] | args]
+  (let [builder (WebApplication/CreateBuilder args)]
+
+    ;; Configure Serilog: extension methods called as static methods
+    ;; UseSerilog(IHostBuilder, Action<HostBuilderContext, LoggerConfiguration>)
+    (SerilogHostBuilderExtensions/UseSerilog
+     (.-Host builder)
+     (fn [^Microsoft.Extensions.Hosting.HostBuilderContext ctx
+          ^Serilog.LoggerConfiguration cfg]
+       ;; Console() is an extension method on LoggerSinkConfiguration
+       (ConsoleLoggerConfigurationExtensions/Console (.-WriteTo cfg))))
+
+    (let [app (.Build builder)]
+
+      ;; Log startup with Serilog - static method call
+      (Log/Information "Cljr Minimal API starting")
+
+      ;; GET / - Hello World (calls get-hello-message for hot-reload)
+      (EndpointRouteBuilderExtensions/MapGet app "/" (fn [] (get-hello-message)))
+
+      ;; POST /todos - Accept JSON body with structured logging
+      (EndpointRouteBuilderExtensions/MapPost
+       app
+       "/todos"
+       (fn [^CreateTodoRequest request]
+         (let [title (.-title request)
+               desc (.-description request)
+               completed (.-completed request)]
+           ;; Structured logging with Serilog - {Title} is a named placeholder
+           (Log/Information "POST /todos: {Title} - {Description}" title desc)
+           (str "Created todo: " title " - " desc " (completed: " completed ")"))))
+
+      app)))
+
+(defn start!
+  ([] (start! "http://localhost:5000"))
+  ([^String url]
+   (let [args ^|string [] | (into-array String ["--urls" url])
+         app ^WebApplication (create-app args)]
+     (.StartAsync app)
+     (println (str "Server started at " url))
+     (println "")
+     (println "Endpoints:")
+     (println "  GET  /       - Hello World")
+     (println "  POST /todos  - Create a todo (JSON body)")
+     (println "")
+     (println "Test commands:")
+     (println (str "  curl " url "/"))
+     (println (str "  curl -X POST " url "/todos -H 'Content-Type: application/json' -d '{\"title\":\"Test\",\"description\":\"A test todo\",\"completed\":false}'"))
+     (println "")
+     (println "To stop: (.StopAsync app)")
+     app)))
+
+(defn -main []
+  (let [args ^|string [] | (into-array String [])
+        app ^WebApplication (create-app args)]
+    (println "Server running at http://localhost:5000")
+    (println "Endpoints:")
+    (println "  GET  /       - Hello World")
+    (println "  POST /todos  - Create a todo (JSON body)")
+    (let [nrepl (Cljr.Repl.EmbeddedNrepl/Start 7888)]
+      (println (str "nREPL running on port " (.-Port nrepl)))
+      (println "Connect with: lein repl :connect 7888"))
+    (.Run app)))
+
+

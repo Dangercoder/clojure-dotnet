@@ -1,0 +1,13 @@
+(ns mylib.utils)
+
+;; Basic utility functions
+
+(defn greet
+  "Returns a greeting message for the given name"
+  [name]
+  (str "Hello, " name "!"))
+
+(defn double-it
+  "Doubles a number"
+  [x]
+  (* x 2))

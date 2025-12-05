@@ -1,0 +1,56 @@
+(ns clojure.walk
+  "Tree walking and transformation utilities for Cljr")
+
+;; ============================================================================
+;; Core Walking Functions - delegate to Core.cs implementations
+;; ============================================================================
+
+(defn walk
+  "Traverses form, an arbitrary data structure. inner and outer are
+  functions. Applies inner to each element of form, building up a
+  data structure of the same type, then applies outer to the result."
+  [inner outer form]
+  (csharp* "~{walk_impl}(~{inner}, ~{outer}, ~{form})"))
+
+(defn postwalk
+  "Performs a depth-first, post-order traversal of form. Calls f on
+  each sub-form, uses f's return value in place of the original."
+  [f form]
+  (csharp* "~{postwalk_impl}(~{f}, ~{form})"))
+
+(defn prewalk
+  "Like postwalk, but does pre-order traversal."
+  [f form]
+  (csharp* "~{prewalk_impl}(~{f}, ~{form})"))
+
+;; ============================================================================
+;; Replacement Walkers - delegate to Core.cs implementations
+;; ============================================================================
+
+(defn postwalk-replace
+  "Recursively transforms form by replacing keys in smap with their
+  values. Like clojure.core/replace but works on any data structure."
+  [smap form]
+  (csharp* "~{postwalk_replace_impl}(~{smap}, ~{form})"))
+
+(defn prewalk-replace
+  "Recursively transforms form by replacing keys in smap with their
+  values. prewalk-replace uses prewalk and stops descending into a form when
+  it matches a key in smap."
+  [smap form]
+  (csharp* "~{prewalk_replace_impl}(~{smap}, ~{form})"))
+
+;; ============================================================================
+;; String/Keyword Conversion Walkers - delegate to Core.cs implementations
+;; ============================================================================
+
+(defn stringify-keys
+  "Recursively transforms all map keys from keywords to strings."
+  [m]
+  (csharp* "~{stringify_keys_impl}(~{m})"))
+
+(defn keywordize-keys
+  "Recursively transforms all map keys from strings to keywords."
+  [m]
+  (csharp* "~{keywordize_keys_impl}(~{m})"))
+

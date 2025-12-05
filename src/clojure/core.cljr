@@ -1,0 +1,470 @@
+(ns clojure.core)
+
+;; ============================================================================
+;; clojure.core - Standard Library Macros
+;; ============================================================================
+;;
+;; This namespace provides core Clojure macros implemented in Clojure itself.
+;; These macros are processed at compile time and expand to forms that the
+;; analyzer and emitter can handle.
+;;
+;; Note: Many core functions are provided by Cljr.Core (C# runtime).
+;; This file focuses on macros that need compile-time transformation.
+;; ============================================================================
+
+;; ----------------------------------------------------------------------------
+;; with-open - Resource Management
+;; ----------------------------------------------------------------------------
+;; Wraps IDisposable resources in try/finally to ensure cleanup.
+;; Expands to nested let/try/finally forms.
+;;
+;; Usage:
+;;   (with-open [conn (get-connection)
+;;               reader (open-reader file)]
+;;     (process conn reader))
+;;
+;; Expands to:
+;;   (let [conn (get-connection)]
+;;     (try
+;;       (let [reader (open-reader file)]
+;;         (try
+;;           (process conn reader)
+;;           (finally (.Dispose reader))))
+;;       (finally (.Dispose conn))))
+;; ----------------------------------------------------------------------------
+
+(defmacro with-open [bindings & body]
+  (if (empty? bindings)
+    `(do ~@body)
+    (let [name (first bindings)
+          init (second bindings)
+          more (vec (rest (rest bindings)))]
+      `(let [~name ~init]
+         (try
+           (with-open ~more ~@body)
+           (finally
+             (.Dispose ~name)))))))
+
+;; ----------------------------------------------------------------------------
+;; when - Single-branch conditional
+;; ----------------------------------------------------------------------------
+;; Evaluates body when test is truthy, returns nil otherwise.
+;;
+;; Usage:
+;;   (when (> x 10)
+;;     (println "big!")
+;;     x)
+;; ----------------------------------------------------------------------------
+
+(defmacro when [test & body]
+  `(if ~test
+     (do ~@body)
+     nil))
+
+;; ----------------------------------------------------------------------------
+;; when-not - Negated single-branch conditional
+;; ----------------------------------------------------------------------------
+;; Evaluates body when test is falsy, returns nil otherwise.
+;;
+;; Usage:
+;;   (when-not (nil? x)
+;;     (process x))
+;; ----------------------------------------------------------------------------
+
+(defmacro when-not [test & body]
+  `(if ~test
+     nil
+     (do ~@body)))
+
+;; ----------------------------------------------------------------------------
+;; if-not - Negated if
+;; ----------------------------------------------------------------------------
+;; Like if but with inverted test logic.
+;;
+;; Usage:
+;;   (if-not (empty? coll)
+;;     (first coll)
+;;     :default)
+;; ----------------------------------------------------------------------------
+
+(defmacro if-not [test then else]
+  `(if ~test ~else ~then))
+
+;; ----------------------------------------------------------------------------
+;; cond - Multi-branch conditional
+;; ----------------------------------------------------------------------------
+;; Evaluates clauses in order, returning the first truthy clause's expression.
+;;
+;; Usage:
+;;   (cond
+;;     (< x 0) "negative"
+;;     (> x 0) "positive"
+;;     :else "zero")
+;; ----------------------------------------------------------------------------
+
+(defmacro cond [& clauses]
+  (if (empty? clauses)
+    nil
+    (let [test (first clauses)
+          expr (second clauses)
+          more (rest (rest clauses))]
+      `(if ~test
+         ~expr
+         (cond ~@more)))))
+
+;; ----------------------------------------------------------------------------
+;; -> (thread-first) - Threading macro
+;; ----------------------------------------------------------------------------
+;; Threads expr through forms as the first argument.
+;;
+;; Usage:
+;;   (-> x
+;;       (inc)
+;;       (* 2)
+;;       (str " result"))
+;;
+;; Expands to: (str (* (inc x) 2) " result")
+;; ----------------------------------------------------------------------------
+
+(defmacro -> [x & forms]
+  (if (empty? forms)
+    x
+    (let [form (first forms)
+          more (rest forms)
+          threaded (if (seq? form)
+                     (let [head (first form)
+                           tail (rest form)]
+                       `(~head ~x ~@tail))
+                     `(~form ~x))]
+      `(-> ~threaded ~@more))))
+
+;; ----------------------------------------------------------------------------
+;; ->> (thread-last) - Threading macro
+;; ----------------------------------------------------------------------------
+;; Threads expr through forms as the last argument.
+;;
+;; Usage:
+;;   (->> items
+;;        (map inc)
+;;        (filter even?)
+;;        (reduce +))
+;;
+;; Expands to: (reduce + (filter even? (map inc items)))
+;; ----------------------------------------------------------------------------
+
+(defmacro ->> [x & forms]
+  (if (empty? forms)
+    x
+    (let [form (first forms)
+          more (rest forms)
+          threaded (if (seq? form)
+                     (concat form [x])
+                     `(~form ~x))]
+      `(->> ~threaded ~@more))))
+
+;; ----------------------------------------------------------------------------
+;; doto - Method chaining
+;; ----------------------------------------------------------------------------
+;; Evaluates x, then executes forms for side effects, returns x.
+;; Useful for .NET object initialization.
+;;
+;; Usage:
+;;   (doto (StringBuilder.)
+;;     (.Append "Hello")
+;;     (.Append " ")
+;;     (.Append "World"))
+;; ----------------------------------------------------------------------------
+
+(defmacro doto [x & forms]
+  (let [gx (gensym "doto__")]
+    `(let [~gx ~x]
+       ~@(map (fn [form]
+                (if (seq? form)
+                  (let [head (first form)
+                        tail (rest form)]
+                    `(~head ~gx ~@tail))
+                  `(~form ~gx)))
+              forms)
+       ~gx)))
+
+;; ----------------------------------------------------------------------------
+;; and - Short-circuit logical and
+;; ----------------------------------------------------------------------------
+;; Returns first falsy value or last value if all truthy.
+;;
+;; Usage:
+;;   (and x (> y 0) (process x y))
+;; ----------------------------------------------------------------------------
+
+(defmacro and [& args]
+  (if (empty? args)
+    true
+    (if (= 1 (count args))
+      (first args)
+      (let [x (first args)
+            more (rest args)]
+        `(let [and# ~x]
+           (if and#
+             (and ~@more)
+             and#))))))
+
+;; ----------------------------------------------------------------------------
+;; or - Short-circuit logical or
+;; ----------------------------------------------------------------------------
+;; Returns first truthy value or last value if all falsy.
+;;
+;; Usage:
+;;   (or (get-cached) (compute-value) default)
+;; ----------------------------------------------------------------------------
+
+(defmacro or [& args]
+  (if (empty? args)
+    nil
+    (if (= 1 (count args))
+      (first args)
+      (let [x (first args)
+            more (rest args)]
+        `(let [or# ~x]
+           (if or#
+             or#
+             (or ~@more)))))))
+
+;; ----------------------------------------------------------------------------
+;; when-let - Conditional binding
+;; ----------------------------------------------------------------------------
+;; Binds value and executes body only when binding is truthy.
+;;
+;; Usage:
+;;   (when-let [result (find-item id)]
+;;     (process result))
+;; ----------------------------------------------------------------------------
+
+(defmacro when-let [bindings & body]
+  (let [name (first bindings)
+        init (second bindings)]
+    `(let [temp# ~init]
+       (when temp#
+         (let [~name temp#]
+           ~@body)))))
+
+;; ----------------------------------------------------------------------------
+;; if-let - Conditional binding with else branch
+;; ----------------------------------------------------------------------------
+;; Binds value and executes then-branch if truthy, else-branch otherwise.
+;;
+;; Usage:
+;;   (if-let [user (find-user id)]
+;;     (greet user)
+;;     (show-login))
+;; ----------------------------------------------------------------------------
+
+(defmacro if-let [bindings then else]
+  (let [name (first bindings)
+        init (second bindings)]
+    `(let [temp# ~init]
+       (if temp#
+         (let [~name temp#]
+           ~then)
+         ~else))))
+
+;; ----------------------------------------------------------------------------
+;; dotimes - Execute body n times
+;; ----------------------------------------------------------------------------
+;; Repeatedly executes body with binding set to 0, 1, ..., n-1.
+;; Returns nil.
+;;
+;; Usage:
+;;   (dotimes [i 5]
+;;     (println i))  ; prints 0 1 2 3 4
+;; ----------------------------------------------------------------------------
+
+(defmacro dotimes [bindings & body]
+  (let [i (first bindings)
+        n (second bindings)]
+    `(let [n# ~n]
+       (loop [~i 0]
+         (when (< ~i n#)
+           ~@body
+           (recur (inc ~i)))))))
+
+;; ----------------------------------------------------------------------------
+;; while - Loop while condition is true
+;; ----------------------------------------------------------------------------
+;; Repeatedly executes body while test is truthy.
+;; Returns nil.
+;;
+;; Usage:
+;;   (let [x (atom 5)]
+;;     (while (> @x 0)
+;;       (swap! x dec)))
+;; ----------------------------------------------------------------------------
+
+(defmacro while [test & body]
+  `(loop []
+     (when ~test
+       ~@body
+       (recur))))
+
+;; ----------------------------------------------------------------------------
+;; doseq - Side-effect iteration
+;; ----------------------------------------------------------------------------
+;; Iterates over collection, executing body for side effects.
+;; Returns nil.
+;;
+;; Usage:
+;;   (doseq [x [1 2 3]]
+;;     (println x))  ; prints 1 2 3
+;; ----------------------------------------------------------------------------
+
+(defmacro doseq [bindings & body]
+  (let [binding (first bindings)
+        coll (second bindings)]
+    `(let [s# (seq ~coll)]
+       (loop [xs# s#]
+         (when xs#
+           (let [~binding (first xs#)]
+             ~@body)
+           (recur (next xs#)))))))
+
+;; ----------------------------------------------------------------------------
+;; lazy-seq - Create lazy sequence
+;; ----------------------------------------------------------------------------
+;; Creates a lazy sequence that delays evaluation of body until needed.
+;; Body should return a sequence or nil.
+;;
+;; Usage:
+;;   (defn integers [n]
+;;     (lazy-seq (cons n (integers (inc n)))))
+;; ----------------------------------------------------------------------------
+
+(defmacro lazy-seq [& body]
+  `(new Cljr.Collections.LazySeq (fn [] ~@body)))
+
+;; ----------------------------------------------------------------------------
+;; lazy-cat - Lazy concatenation
+;; ----------------------------------------------------------------------------
+;; Lazily concatenates collections.
+;;
+;; Usage:
+;;   (lazy-cat [1 2] [3 4] [5 6])  ; => (1 2 3 4 5 6)
+;; ----------------------------------------------------------------------------
+
+(defmacro lazy-cat [& colls]
+  `(lazy-seq (concat ~@colls)))
+
+;; ----------------------------------------------------------------------------
+;; for - List comprehension (eager version)
+;; ----------------------------------------------------------------------------
+;; Returns a sequence of body-expr evaluated for each binding.
+;; Note: This is an eager version that returns a vector.
+;;
+;; Usage:
+;;   (for [x [1 2 3]] (* x 2))  ; => [2 4 6]
+;;   (for [x [1 2] y [:a :b]] [x y])  ; => [[1 :a] [1 :b] [2 :a] [2 :b]]
+;; ----------------------------------------------------------------------------
+
+(defmacro for [seq-exprs body-expr]
+  (let [result-sym (gensym "result__")]
+    `(let [~result-sym (atom [])]
+       (doseq ~seq-exprs
+         (swap! ~result-sym conj ~body-expr))
+       @~result-sym)))
+
+;; ----------------------------------------------------------------------------
+;; condp - Predicate dispatch
+;; ----------------------------------------------------------------------------
+;; Takes a binary predicate, expression, and clauses.
+;; For each clause (test-expr result-expr), calls (pred test-expr expr).
+;; Returns the result for the first truthy test.
+;;
+;; Usage:
+;;   (condp = x
+;;     1 "one"
+;;     2 "two"
+;;     "other")  ; default if none match
+;; ----------------------------------------------------------------------------
+
+(defmacro condp [pred expr & clauses]
+  (let [gpred (gensym "pred__")
+        gexpr (gensym "expr__")]
+    (if (odd? (count clauses))
+      ;; Has default clause
+      (let [default (last clauses)
+            pairs (partition 2 (butlast clauses))]
+        `(let [~gpred ~pred
+               ~gexpr ~expr]
+           (cond
+             ~@(mapcat (fn [pair]
+                         (let [test (first pair)
+                               result (second pair)]
+                           `((~gpred ~test ~gexpr) ~result)))
+                       pairs)
+             :else ~default)))
+      ;; No default clause
+      `(let [~gpred ~pred
+             ~gexpr ~expr]
+         (cond
+           ~@(mapcat (fn [pair]
+                       (let [test (first pair)
+                             result (second pair)]
+                         `((~gpred ~test ~gexpr) ~result)))
+                     (partition 2 clauses)))))))
+
+;; ----------------------------------------------------------------------------
+;; case - Fast constant dispatch
+;; ----------------------------------------------------------------------------
+;; Takes an expression and clauses.
+;; Matches expression against constants using =.
+;; Optionally takes a default expression if no match.
+;;
+;; Usage:
+;;   (case x
+;;     1 "one"
+;;     2 "two"
+;;     "other")  ; default
+;; ----------------------------------------------------------------------------
+
+(defmacro case [expr & clauses]
+  (let [gexpr (gensym "expr__")]
+    (if (odd? (count clauses))
+      ;; Has default clause
+      (let [default (last clauses)
+            pairs (partition 2 (butlast clauses))]
+        `(let [~gexpr ~expr]
+           (cond
+             ~@(mapcat (fn [pair]
+                         (let [test (first pair)
+                               result (second pair)]
+                           `((= ~gexpr ~test) ~result)))
+                       pairs)
+             :else ~default)))
+      ;; No default clause
+      `(let [~gexpr ~expr]
+         (cond
+           ~@(mapcat (fn [pair]
+                       (let [test (first pair)
+                             result (second pair)]
+                         `((= ~gexpr ~test) ~result)))
+                     (partition 2 clauses)))))))
+
+;; ----------------------------------------------------------------------------
+;; time - Measure execution time
+;; ----------------------------------------------------------------------------
+;; Evaluates expr and prints the time it took.
+;; Returns the value of expr.
+;;
+;; Usage:
+;;   (time (reduce + (range 10000)))
+;;   ; "Elapsed time: 1.234 ms"
+;;   ; => 49995000
+;; ----------------------------------------------------------------------------
+
+(defmacro time [expr]
+  (let [start (gensym "start__")
+        ret (gensym "ret__")
+        elapsed (gensym "elapsed__")]
+    `(let [~start (System.Diagnostics.Stopwatch/StartNew)
+           ~ret ~expr
+           ~elapsed (.-ElapsedMilliseconds ~start)]
+       (println (str "Elapsed time: " ~elapsed " ms"))
+       ~ret)))

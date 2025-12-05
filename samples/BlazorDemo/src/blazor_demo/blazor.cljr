@@ -1,0 +1,64 @@
+(ns blazor-demo.blazor
+  "Blazor component macro library for Cljr.
+
+   Provides the defcomponent macro for defining Blazor components:
+
+   (defcomponent Counter [^{:attr [Parameter]} ^int InitialCount
+                          ^int CurrentCount]
+     \"int __seq = 0;
+      __builder.OpenElement(__seq++, \\\"div\\\");
+      __builder.AddAttribute(__seq++, \\\"class\\\", \\\"counter\\\");
+      __builder.AddContent(__seq++, CurrentCount);
+      __builder.CloseElement();\"
+
+     (Increment [this]
+       (csharp* \"CurrentCount++\")))
+
+   This macro is 100% user-space - no Blazor-specific code in the cljr compiler.
+
+   NOTE: For now, the render-code is passed as a raw C# string.
+   A future enhancement could add Hiccup syntax parsing.")
+
+;; ============================================================================
+;; defcomponent Macro
+;; ============================================================================
+
+(defmacro defcomponent
+  "Define a Blazor component.
+
+   Arguments:
+   - name: Component class name
+   - fields: Vector of field definitions with type hints and attributes
+   - render-code: C# string for BuildRenderTree body (RenderTreeBuilder is '__builder')
+   - methods: Additional method definitions
+
+   Example:
+   (defcomponent Counter [^{:attr [Parameter]} ^int InitialCount
+                          ^int CurrentCount]
+     \"int __seq = 0;
+      __builder.OpenElement(__seq++, \\\"div\\\");
+      __builder.AddContent(__seq++, CurrentCount);
+      __builder.CloseElement();\"
+
+     (Increment [this]
+       (csharp* \"CurrentCount++\")))"
+  [name fields render-code & methods]
+  `(deftype ~name ~fields
+     Microsoft.AspNetCore.Components.ComponentBase
+
+     (^{:override true} BuildRenderTree
+       [~'this ^Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder ~'__builder]
+       (csharp* ~render-code)
+       nil)
+
+     ~@methods))
+
+;; ============================================================================
+;; Macros Work in Source Generators
+;; ============================================================================
+;;
+;; User-defined macros (defmacro) now work in both REPL and source generators!
+;; The macro system uses pure interpretation (MacroInterpreter) instead of
+;; Roslyn compilation, so it works everywhere.
+;;
+;; You can use defcomponent in source-generated projects.

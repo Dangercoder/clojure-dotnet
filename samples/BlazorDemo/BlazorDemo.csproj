@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Source generator for .cljr files -->
+    <ProjectReference Include="..\..\src\Cljr.SourceGenerator\Cljr.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\src\Cljr.Compiler\Cljr.Compiler.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" SetTargetFramework="TargetFramework=netstandard2.0" />
+    <ProjectReference Include="..\..\src\Cljr.Core\Cljr.Core.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\src\Cljr.Runtime\Cljr.Runtime.csproj" />
+    <!-- Embedded nREPL for REPL-driven development -->
+    <ProjectReference Include="..\..\src\Cljr.Repl\Cljr.Repl.csproj" />
+  </ItemGroup>
+
+  <!-- Import props to make .cljr files available as AdditionalFiles -->
+  <Import Project="..\..\src\Cljr.SourceGenerator\build\Cljr.SourceGenerator.props" />
+
+</Project>

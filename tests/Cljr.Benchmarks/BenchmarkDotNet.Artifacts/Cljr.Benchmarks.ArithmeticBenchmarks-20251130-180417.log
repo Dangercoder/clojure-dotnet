@@ -1,0 +1,40 @@
+// Validating benchmarks:
+// ***** BenchmarkRunner: Start   *****
+// ***** Found 40 benchmark(s) in total *****
+// ***** Building 2 exe(s) in Parallel: Start   *****
+// ***** Done, took 00:00:04 (4.74 sec)   *****
+// Found 40 benchmarks:
+//   ArithmeticBenchmarks.Direct_Plus_2Args: ShortRun(IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ArithmeticBenchmarks.Direct_Plus_3Args: ShortRun(IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ArithmeticBenchmarks.Direct_Plus_5Args: ShortRun(IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ArithmeticBenchmarks.Core_Plus_2Args: ShortRun(IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ArithmeticBenchmarks.Core_Plus_3Args: ShortRun(IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ArithmeticBenchmarks.Core_Plus_5Args: ShortRun(IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ArithmeticBenchmarks.Direct_Minus_2Args: ShortRun(IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ArithmeticBenchmarks.Core_Minus_2Args: ShortRun(IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ArithmeticBenchmarks.Direct_Mult_2Args: ShortRun(IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ArithmeticBenchmarks.Core_Mult_2Args: ShortRun(IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ArithmeticBenchmarks.Direct_Div_2Args: ShortRun(IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ArithmeticBenchmarks.Core_Div_2Args: ShortRun(IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ArithmeticBenchmarks.Direct_LessThan: ShortRun(IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ArithmeticBenchmarks.Core_LessThan: ShortRun(IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ArithmeticBenchmarks.Direct_Equals: ShortRun(IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ArithmeticBenchmarks.Core_Equals: ShortRun(IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ArithmeticBenchmarks.Direct_Inc: ShortRun(IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ArithmeticBenchmarks.Core_Inc: ShortRun(IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ArithmeticBenchmarks.Direct_Dec: ShortRun(IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ArithmeticBenchmarks.Core_Dec: ShortRun(IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ArithmeticBenchmarks.Direct_Plus_2Args: ShortRun(Toolchain=InProcessNoEmitToolchain, IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ArithmeticBenchmarks.Direct_Plus_3Args: ShortRun(Toolchain=InProcessNoEmitToolchain, IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ArithmeticBenchmarks.Direct_Plus_5Args: ShortRun(Toolchain=InProcessNoEmitToolchain, IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ArithmeticBenchmarks.Core_Plus_2Args: ShortRun(Toolchain=InProcessNoEmitToolchain, IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ArithmeticBenchmarks.Core_Plus_3Args: ShortRun(Toolchain=InProcessNoEmitToolchain, IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ArithmeticBenchmarks.Core_Plus_5Args: ShortRun(Toolchain=InProcessNoEmitToolchain, IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ArithmeticBenchmarks.Direct_Minus_2Args: ShortRun(Toolchain=InProcessNoEmitToolchain, IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ArithmeticBenchmarks.Core_Minus_2Args: ShortRun(Toolchain=InProcessNoEmitToolchain, IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ArithmeticBenchmarks.Direct_Mult_2Args: ShortRun(Toolchain=InProcessNoEmitToolchain, IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ArithmeticBenchmarks.Core_Mult_2Args: ShortRun(Toolchain=InProcessNoEmitToolchain, IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ArithmeticBenchmarks.Direct_Div_2Args: ShortRun(Toolchain=InProcessNoEmitToolchain, IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ArithmeticBenchmarks.Core_Div_2Args: ShortRun(Toolchain=InProcessNoEmitToolchain, IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ArithmeticBenchmarks.Direct_LessThan: ShortRun(Toolchain=InProcessNoEmitToolchain, IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ArithmeticBenchmarks.Core_LessThan: ShortRun(Toolchain=InProcessNoEmitToolchain, IterationCou

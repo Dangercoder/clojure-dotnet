@@ -1,0 +1,116 @@
+(ns clojure.set
+  "Set operations such as union/intersection - simplified for Cljr")
+
+;; ============================================================================
+;; Basic Set Operations
+;; ============================================================================
+
+(defn union
+  "Return a set that is the union of the input sets"
+  ([] #{})
+  ([s1] s1)
+  ([s1 s2]
+   (if (< (count s1) (count s2))
+     (reduce (fn [coll item] (conj coll item)) s2 s1)
+     (reduce (fn [coll item] (conj coll item)) s1 s2))))
+
+(defn intersection
+  "Return a set that is the intersection of the input sets"
+  ([s1] s1)
+  ([s1 s2]
+   (if (< (count s2) (count s1))
+     (intersection s2 s1)
+     (reduce (fn [result item]
+               (if (contains? s2 item)
+                 result
+                 (disj result item)))
+             s1 s1))))
+
+(defn difference
+  "Return a set that is the first set without elements of the remaining sets"
+  ([s1] s1)
+  ([s1 s2]
+   (if (< (count s1) (count s2))
+     (reduce (fn [result item]
+               (if (contains? s2 item)
+                 (disj result item)
+                 result))
+             s1 s1)
+     (reduce disj s1 s2))))
+
+;; ============================================================================
+;; Set Predicates
+;; ============================================================================
+
+(defn subset?
+  "Is set1 a subset of set2?"
+  [set1 set2]
+  (and (<= (count set1) (count set2))
+       (every? (fn [x] (contains? set2 x)) set1)))
+
+(defn superset?
+  "Is set1 a superset of set2?"
+  [set1 set2]
+  (and (>= (count set1) (count set2))
+       (every? (fn [x] (contains? set1 x)) set2)))
+
+;; ============================================================================
+;; Relational Algebra
+;; ============================================================================
+
+(defn select
+  "Returns a set of the elements for which pred is true"
+  [pred xset]
+  (csharp* "((Func<object?>)(() => { var result = ~{xset}; var s = Cljr.Core.Seq(~{xset}); if (s == null) return result; foreach (var k in s) { var predResult = (~{pred} is Func<object?, bool> pb ? (object)pb(k) : (~{pred} is Func<object, bool> pb2 ? (object)pb2(k!) : ((Delegate)~{pred}).DynamicInvoke(k))); if (!Cljr.Core.IsTruthy(predResult)) { result = Cljr.Core.Disj(result, k); } } return result; }))()"))
+
+(defn project
+  "Returns a rel of the elements of xrel with only the keys in ks"
+  [xrel ks]
+  (set (map (fn [m] (select-keys m ks)) xrel)))
+
+(defn rename-keys
+  "Returns the map with the keys in kmap renamed to the vals in kmap"
+  [m kmap]
+  (csharp* "((Func<object?>)(() => { var result = ~{m}; var kmap_val = ~{kmap}; foreach (var kvp in Cljr.Core.Seq(kmap_val)) { var old_key = Cljr.Core.First(kvp); var new_key = Cljr.Core.Second(kvp); if (Cljr.Core.IsTruthy(Cljr.Core.contains_QMARK_(result, old_key))) { var val = Cljr.Core.Get(result, old_key); result = Cljr.Core.Dissoc(result, old_key); result = Cljr.Core.Assoc(result, new_key, val); } } return result; }))()"))
+
+(defn rename
+  "Returns a rel of the maps in xrel with the keys in kmap renamed to the vals in kmap"
+  [xrel kmap]
+  (set (map (fn [m] (rename-keys m kmap)) xrel)))
+
+(defn index
+  "Returns a map of the distinct values of ks in the xrel mapped to a
+  set of the maps in xrel with the corresponding values of ks."
+  [xrel ks]
+  (reduce
+   (fn [m x]
+     (let [ik (select-keys x ks)]
+       (assoc m ik (conj (get m ik #{}) x))))
+   {} xrel))
+
+(defn map-invert
+  "Returns the map with the vals mapped to the keys."
+  [m]
+  (reduce-kv (fn [result k v] (assoc result v k))
+             {}
+             m))
+
+;; ============================================================================
+;; Join (simplified without destructuring)
+;; ============================================================================
+
+(defn join
+  "When passed 2 rels, returns the rel corresponding to the natural join."
+  [xrel yrel]
+  (if (and (seq xrel) (seq yrel))
+    (let [ks (intersection (set (keys (first xrel))) (set (keys (first yrel))))
+          smaller (if (<= (count xrel) (count yrel)) xrel yrel)
+          larger (if (<= (count xrel) (count yrel)) yrel xrel)
+          idx (index smaller ks)]
+      (reduce (fn [ret x]
+                (let [found (get idx (select-keys x ks))]
+                  (if found
+                    (reduce (fn [r y] (conj r (merge y x))) ret found)
+                    ret)))
+              #{} larger))
+    #{}))

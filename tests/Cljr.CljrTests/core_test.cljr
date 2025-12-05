@@ -1,0 +1,94 @@
+(ns cljr.core-test)
+
+;; ============================================================================
+;; Basic Operations
+;; ============================================================================
+
+(deftest test-addition
+  (is (= 4 (+ 2 2)))
+  (is (= 0 (+ 0 0)))
+  (is (= 10 (+ 1 2 3 4))))
+
+(deftest test-strings
+  (is (= "hello world" (str "hello" " " "world")))
+  (is (= 5 (count "hello"))))
+
+(deftest test-collections
+  (is (= [1 2 3] [1 2 3]))
+  (is (= 3 (count [1 2 3])))
+  (is (= 1 (first [1 2 3]))))
+
+;; ============================================================================
+;; clojure.core Macro Tests
+;; ============================================================================
+
+;; ----------------------------------------------------------------------------
+;; when - Single-branch conditional
+;; ----------------------------------------------------------------------------
+
+(deftest test-when-truthy
+  (is (= 42 (when true 42)))
+  (is (= "yes" (when true "yes"))))
+
+(deftest test-when-falsy
+  (is (nil? (when false 42)))
+  (is (nil? (when nil "never"))))
+
+;; ----------------------------------------------------------------------------
+;; if-not - Negated if
+;; ----------------------------------------------------------------------------
+
+(deftest test-if-not-falsy
+  (is (= "then" (if-not false "then" "else"))))
+
+(deftest test-if-not-truthy
+  (is (= "else" (if-not true "then" "else"))))
+
+;; ----------------------------------------------------------------------------
+;; cond - Multi-branch conditional
+;; ----------------------------------------------------------------------------
+
+(deftest test-cond-matches
+  (is (= "yes" (cond
+                 true "yes"
+                 :else "no")))
+  (is (= "no" (cond
+                false "yes"
+                :else "no"))))
+
+;; ----------------------------------------------------------------------------
+;; -> (thread-first) - Threading macro
+;; ----------------------------------------------------------------------------
+
+(deftest test-thread-first-simple
+  (is (= 3 (-> 1 inc inc))))
+
+;; ----------------------------------------------------------------------------
+;; ->> (thread-last) - Threading macro
+;; ----------------------------------------------------------------------------
+
+(deftest test-thread-last-simple
+  (is (= 3 (->> 1 inc inc))))
+
+;; ----------------------------------------------------------------------------
+;; and - Short-circuit logical and
+;; ----------------------------------------------------------------------------
+
+(deftest test-and-all-truthy
+  (is (= 3 (and 1 2 3))))
+
+(deftest test-and-with-false
+  (is (= false (and true false "never-reached"))))
+
+;; ----------------------------------------------------------------------------
+;; or - Short-circuit logical or
+;; ----------------------------------------------------------------------------
+
+(deftest test-or-first-truthy
+  (is (= 1 (or 1 2 3))))
+
+(deftest test-or-with-nil
+  (is (= "found" (or nil "found"))))
+
+(deftest test-or-with-false
+  (is (= "found" (or false nil "found" "never-reached"))))

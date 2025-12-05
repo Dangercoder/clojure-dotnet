@@ -1,0 +1,52 @@
+# IDE/Editor
+inspo
+.calva/
+.clj-kondo/
+.lsp/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+.vs/
+
+# .NET build outputs
+bin/
+obj/
+Debug/
+Release/
+x64/
+x86/
+[Bb]uild/
+[Bb]uildLog.*
+
+# Source generator outputs (kept for debugging, excluded from compilation)
+Generated/
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+project.lock.json
+project.fragment.lock.json
+
+# nREPL
+.nrepl-port
+
+# Rider
+.idea/
+*.sln.iml
+
+# Test results
+TestResults/
+*.trx
+
+# Misc
+*.log
+*.tmp
+*.temp
+*.swp
+*~
+.DS_Store
+Thumbs.db

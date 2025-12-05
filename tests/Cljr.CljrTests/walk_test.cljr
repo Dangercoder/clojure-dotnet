@@ -1,0 +1,124 @@
+(ns cljr.walktest
+  (:require [clojure.walk :as walk])
+  (:use [mstest]))
+
+;; ============================================================================
+;; postwalk tests
+;; ============================================================================
+
+(deftest test-postwalk-identity
+  (is (= [1 2 3] (walk/postwalk identity [1 2 3])))
+  (is (= {:a 1 :b 2} (walk/postwalk identity {:a 1 :b 2})))
+  (is (= #{1 2 3} (walk/postwalk identity #{1 2 3}))))
+
+(deftest test-postwalk-inc
+  ;; Use postwalk_typed from Core.cs directly with typed lambda
+  (is (= [2 3 4] (csharp* "postwalk_typed(x => IsTruthy(number_QMARK_(x)) ? inc(x) : x, ~{[1 2 3]})"))))
+
+(deftest test-postwalk-nested
+  (is (= [[2 3] [4 5]]
+         (csharp* "postwalk_typed(x => IsTruthy(number_QMARK_(x)) ? inc(x) : x, ~{[[1 2] [3 4]]})"))))
+
+;; ============================================================================
+;; prewalk tests
+;; ============================================================================
+
+(deftest test-prewalk-identity
+  (is (= [1 2 3] (walk/prewalk identity [1 2 3])))
+  (is (= {:a 1 :b 2} (walk/prewalk identity {:a 1 :b 2})))
+  (is (= #{1 2 3} (walk/prewalk identity #{1 2 3}))))
+
+(deftest test-prewalk-inc
+  (is (= [2 3 4] (csharp* "prewalk_typed(x => IsTruthy(number_QMARK_(x)) ? inc(x) : x, ~{[1 2 3]})"))))
+
+;; ============================================================================
+;; postwalk-replace tests
+;; ============================================================================
+
+(deftest test-postwalk-replace-simple
+  (is (= [10 2 30]
+         (walk/postwalk-replace {1 10 3 30} [1 2 3]))))
+
+(deftest test-postwalk-replace-nested
+  (is (= [[10 2] [30 4]]
+         (walk/postwalk-replace {1 10 3 30} [[1 2] [3 4]]))))
+
+(deftest test-postwalk-replace-map
+  (is (= {:x 10 :b 2}
+         (walk/postwalk-replace {:a :x 1 10} {:a 1 :b 2}))))
+
+;; ============================================================================
+;; prewalk-replace tests
+;; ============================================================================
+
+(deftest test-prewalk-replace-simple
+  (is (= [10 2 30]
+         (walk/prewalk-replace {1 10 3 30} [1 2 3]))))
+
+(deftest test-prewalk-replace-stops-at-match
+  ;; prewalk replaces the node before walking into it
+  ;; so if we replace [1 2] with :replaced, we don't walk into it
+  (is (= [:replaced [3 4]]
+         (walk/prewalk-replace {[1 2] :replaced} [[1 2] [3 4]]))))
+
+;; ============================================================================
+;; stringify-keys tests
+;; ============================================================================
+
+(deftest test-stringify-keys-simple
+  (is (= {"a" 1 "b" 2}
+         (walk/stringify-keys {:a 1 :b 2}))))
+
+(deftest test-stringify-keys-nested
+  (is (= {"a" {"b" 1 "c" 2}}
+         (walk/stringify-keys {:a {:b 1 :c 2}}))))
+
+(deftest test-stringify-keys-in-vector
+  (is (= [{"a" 1} {"b" 2}]
+         (walk/stringify-keys [{:a 1} {:b 2}]))))
+
+(deftest test-stringify-keys-mixed
+  ;; Non-keyword keys should remain unchanged
+  (is (= {"a" 1 "string-key" 2}
+         (walk/stringify-keys {:a 1 "string-key" 2}))))
+
+;; ============================================================================
+;; keywordize-keys tests
+;; ============================================================================
+
+(deftest test-keywordize-keys-simple
+  (is (= {:a 1 :b 2}
+         (walk/keywordize-keys {"a" 1 "b" 2}))))
+
+(deftest test-keywordize-keys-nested
+  (is (= {:a {:b 1 :c 2}}
+         (walk/keywordize-keys {"a" {"b" 1 "c" 2}}))))
+
+(deftest test-keywordize-keys-in-vector
+  (is (= [{:a 1} {:b 2}]
+         (walk/keywordize-keys [{"a" 1} {"b" 2}]))))
+
+(deftest test-keywordize-keys-mixed
+  ;; Non-string keys should remain unchanged
+  (is (= {:a 1 :keyword-key 2}
+         (walk/keywordize-keys {"a" 1 :keyword-key 2}))))
+
+;; ============================================================================
+;; walk tests
+;; ============================================================================
+
+(deftest test-walk-vector
+  ;; Walk should apply inner to each element, then outer to the result
+  ;; Use walk_core from Core.cs with typed lambdas
+  (is (= [2 4 6]
+         (csharp* "walk_core(x => _STAR_(x, 2L), identity, ~{[1 2 3]})"))))
+
+(deftest test-walk-map
+  ;; For maps, inner is applied to each map-entry
+  (is (= {:a 1 :b 2}
+         (walk/walk identity identity {:a 1 :b 2}))))
+
+(deftest test-walk-set
+  (is (= #{1 2 3}
+         (walk/walk identity identity #{1 2 3}))))
+

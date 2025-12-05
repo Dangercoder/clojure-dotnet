@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+  </PropertyGroup>
+
+  <!-- Global using for Serilog extension methods -->
+  <ItemGroup>
+    <Using Include="Serilog" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Cljr.SourceGenerator\Cljr.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <!-- Also include compiler and core as analyzer dependencies for source generator -->
+    <ProjectReference Include="..\..\src\Cljr.Compiler\Cljr.Compiler.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" SetTargetFramework="TargetFramework=netstandard2.0" />
+    <ProjectReference Include="..\..\src\Cljr.Core\Cljr.Core.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\src\Cljr.Runtime\Cljr.Runtime.csproj" />
+    <ProjectReference Include="..\..\src\Cljr.Repl\Cljr.Repl.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Serilog" Version="4.3.0" />
+    <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
+    <!-- netstandard2.0 polyfills needed by source generator -->
+    <PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.1"
+                      GeneratePathProperty="true" PrivateAssets="all" />
+    <PackageReference Include="System.Memory" Version="4.5.5"
+                      GeneratePathProperty="true" PrivateAssets="all" />
+    <PackageReference Include="System.Collections.Immutable" Version="8.0.0"
+                      GeneratePathProperty="true" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Include polyfill DLLs as analyzers for source generator -->
+    <Analyzer Include="$(PkgMicrosoft_Bcl_HashCode)\lib\netstandard2.0\Microsoft.Bcl.HashCode.dll" />
+    <Analyzer Include="$(PkgSystem_Memory)\lib\netstandard2.0\System.Memory.dll" />
+    <Analyzer Include="$(PkgSystem_Collections_Immutable)\lib\netstandard2.0\System.Collections.Immutable.dll" />
+  </ItemGroup>
+
+  <!-- Import props to make .cljr files available as AdditionalFiles -->
+  <Import Project="..\..\src\Cljr.SourceGenerator\build\Cljr.SourceGenerator.props" />
+
+</Project>

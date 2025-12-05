@@ -1,0 +1,74 @@
+(ns cljr.set-test
+  (:require [clojure.set :as set]))
+
+;; ============================================================================
+;; Basic Set Operations Tests
+;; ============================================================================
+
+(deftest test-union
+  (is (= #{1 2 3 4 5} (set/union #{1 2 3} #{3 4 5})))
+  (is (= #{1 2 3} (set/union #{1 2 3} #{})))
+  (is (= #{1 2 3} (set/union #{} #{1 2 3})))
+  (is (= #{} (set/union #{} #{})))
+  (is (= #{1 2 3} (set/union #{1 2 3})))
+  (is (= #{} (set/union))))
+
+(deftest test-intersection
+  (is (= #{3} (set/intersection #{1 2 3} #{3 4 5})))
+  (is (= #{2 3} (set/intersection #{1 2 3} #{2 3 4})))
+  (is (= #{} (set/intersection #{1 2 3} #{4 5 6})))
+  (is (= #{} (set/intersection #{1 2 3} #{})))
+  (is (= #{1 2 3} (set/intersection #{1 2 3}))))
+
+(deftest test-difference
+  (is (= #{1 2} (set/difference #{1 2 3} #{3 4 5})))
+  (is (= #{1 2 3} (set/difference #{1 2 3} #{})))
+  (is (= #{} (set/difference #{1 2 3} #{1 2 3})))
+  (is (= #{} (set/difference #{} #{1 2 3})))
+  (is (= #{1 2 3} (set/difference #{1 2 3}))))
+
+;; ============================================================================
+;; Set Predicate Tests
+;; ============================================================================
+
+(deftest test-subset?
+  (is (set/subset? #{1 2} #{1 2 3}))
+  (is (set/subset? #{} #{1 2 3}))
+  (is (set/subset? #{1 2 3} #{1 2 3}))
+  (is (not (set/subset? #{1 2 3 4} #{1 2 3})))
+  (is (not (set/subset? #{4} #{1 2 3}))))
+
+(deftest test-superset?
+  (is (set/superset? #{1 2 3} #{1 2}))
+  (is (set/superset? #{1 2 3} #{}))
+  (is (set/superset? #{1 2 3} #{1 2 3}))
+  (is (not (set/superset? #{1 2} #{1 2 3})))
+  (is (not (set/superset? #{1 2 3} #{4}))))
+
+;; ============================================================================
+;; Relational Algebra Tests
+;; ============================================================================
+
+(deftest test-select
+  (is (= #{2 4} (set/select even? #{1 2 3 4 5})))
+  (is (= #{} (set/select even? #{1 3 5})))
+  (is (= #{} (set/select odd? #{}))))
+
+(deftest test-project
+  (is (= #{{:a 1} {:a 2}}
+         (set/project #{{:a 1 :b 2} {:a 2 :b 3}} [:a])))
+  (is (= #{{:a 1 :b 2} {:a 2 :b 3}}
+         (set/project #{{:a 1 :b 2 :c 4} {:a 2 :b 3 :c 5}} [:a :b]))))
+
+(deftest test-map-invert
+  (is (= {1 :a 2 :b 3 :c} (set/map-invert {:a 1 :b 2 :c 3})))
+  (is (= {} (set/map-invert {})))
+  (is (= {"v" "k"} (set/map-invert {"k" "v"}))))
+
+;; ============================================================================
+;; Join Tests (simplified)
+;; ============================================================================
+
+(deftest test-join-empty
+  (is (= #{} (set/join #{} #{{:a 1}})))
+  (is (= #{} (set/join #{{:a 1}} #{}))))
