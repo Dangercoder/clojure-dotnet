@@ -774,6 +774,9 @@ public static class Core
         string s => $"\"{s.Replace("\\", "\\\\").Replace("\"", "\\\"")}\"",
         char c => $"\\{c}",
         Type t => FormatType(t),
+        IPersistentMap map => FormatPersistentMap(map),
+        IPersistentVector vec => FormatPersistentVector(vec),
+        IPersistentSet set => FormatPersistentSet(set),
         IDictionary dict => FormatMap(dict),
         IList list => FormatVector(list),
         IEnumerable seq => FormatSeq(seq),
@@ -833,6 +836,34 @@ public static class Core
     {
         var items = seq.Cast<object?>().Select(PrStr);
         return $"({string.Join(" ", items)})";
+    }
+
+    private static string FormatPersistentMap(IPersistentMap map)
+    {
+        var pairs = new List<string>();
+        for (var s = ((IPersistentCollection)map).Seq(); s != null; s = s.Next())
+        {
+            if (s.First() is IMapEntry entry)
+                pairs.Add($"{PrStr(entry.Key())} {PrStr(entry.Val())}");
+        }
+        return $"{{{string.Join(", ", pairs)}}}";
+    }
+
+    private static string FormatPersistentVector(IPersistentVector vec)
+    {
+        var items = new List<string>();
+        var coll = (IPersistentCollection)vec;
+        for (int i = 0; i < coll.Count; i++)
+            items.Add(PrStr(((Indexed)vec).Nth(i)));
+        return $"[{string.Join(" ", items)}]";
+    }
+
+    private static string FormatPersistentSet(IPersistentSet set)
+    {
+        var items = new List<string>();
+        for (var s = ((IPersistentCollection)set).Seq(); s != null; s = s.Next())
+            items.Add(PrStr(s.First()));
+        return $"#{{{string.Join(" ", items)}}}";
     }
 
     #endregion
@@ -2753,8 +2784,8 @@ public static class Core
     }
 
     /// <summary>Juxt - returns fn that returns vector of fn applications</summary>
-    public static Func<object?[], List<object?>> juxt(params Func<object?, object?>[] fns) =>
-        args => fns.Select(f => args.Length > 0 ? f(args[0]) : f(null)).ToList();
+    public static Func<object?, List<object?>> juxt(params Func<object?, object?>[] fns) =>
+        x => fns.Select(f => f(x)).ToList();
     public static Func<object?, List<object?>> juxt(params object?[] fns) =>
         x => fns.Select(f => Invoke(f, x)).ToList();
 
