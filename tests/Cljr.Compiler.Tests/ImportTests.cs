@@ -4,6 +4,7 @@ using Cljr.Repl;
 
 namespace Cljr.Compiler.Tests;
 
+[Collection("VarTests")]
 public class ImportTests
 {
     private readonly ITestOutputHelper _output;
